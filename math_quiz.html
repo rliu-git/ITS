@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Math test</title>
     <style>
         body {
@@ -36,6 +37,11 @@
             margin-top: 20px;
             text-align: center;
         }
+                #resultChart {
+            display: block;
+            margin: auto;
+            margin-top: 20px; /* Adjust the top margin if needed */
+        }
     </style>
 </head>
 <body>
@@ -46,6 +52,7 @@
         <div id="feedback"></div>
         <button onclick="nextQuestion()">Next Question</button>
     </div>
+    <canvas id="resultChart" width="250" height="250"></canvas>
 
     <script>
         // Define quiz questions and answers
@@ -54,6 +61,11 @@
                 question: "What is the result of 2 + 2?",
                 options: ["3", "4", "5", "6"],
                 correctAnswer: "4"
+            },
+            {
+                question: "What is the result of 12 + 2?",
+                options: ["13", "14", "15", "16"],
+                correctAnswer: "14"
             },
             {
                 question: "What is the square root of 25?",
@@ -65,20 +77,34 @@
                 options: ["2", "3", "5", "7"],
                 correctAnswer: "2"
             },
+            {
+                question: "Which number is odd ?",
+                options: ["2", "4", "5", "0"],
+                correctAnswer: "5"
+            },
         ];
 
         let currentQuestionIndex = 0;
+        let incorrectCount = 0;
 
         // Function to load the next question
         function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                loadQuestion();
-            } else {
-                document.getElementById("question").innerHTML = "Test Completed!";
-                document.getElementById("options").innerHTML = "";
+    if (currentQuestionIndex < questions.length - 1) {
+        const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+        if (selectedAnswer) {
+            const answer = selectedAnswer.value;
+            const currentQuestion = questions[currentQuestionIndex];
+
+            if (answer !== currentQuestion.correctAnswer) {
+                incorrectCount++;
             }
         }
+        currentQuestionIndex++;
+        loadQuestion();
+    } else {
+        displayResult();
+    }
+}
 
         // Function to load the current question and options
         function loadQuestion() {
@@ -114,7 +140,33 @@
                 document.getElementById("feedback").innerHTML = "Please select an answer.";
             }
         }
+        function displayResult() {
+    const correctCount = questions.length - incorrectCount;
 
+    // Display correct and incorrect counts
+    document.getElementById("question").innerHTML = "Test Completed!";
+    document.getElementById("options").innerHTML = "";
+    document.getElementById("feedback").innerHTML = `Correct: ${correctCount} | Incorrect: ${incorrectCount}`;
+
+    // Draw pie chart
+    const resultChartCanvas = document.getElementById("resultChart");
+    const resultChartContext = resultChartCanvas.getContext("2d");
+
+    new Chart(resultChartContext, {
+        type: "pie",
+        data: {
+            labels: ["Correct", "Incorrect"],
+            datasets: [{
+                data: [correctCount, incorrectCount],
+                backgroundColor: ["green", "red"],
+            }],
+        },
+    });
+
+    // Hide the "Next Question" button
+    const nextQuestionButton = document.getElementById("nextQuestionButton");
+    nextQuestionButton.style.display = "none";
+}
         // Load the first question on page load
         window.onload = loadQuestion;
     </script>

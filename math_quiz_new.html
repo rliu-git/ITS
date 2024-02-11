@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Math test</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 30px;
+        }
+
+        #quiz-container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #question {
+            margin-bottom: 20px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .options li {
+            margin-bottom: 10px;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #resultChart {
+            display: block;
+            margin: auto;
+            margin-top: 20px; /* Adjust the top margin if needed */
+        }
+
+        #selectQuestionButton,
+        #nextQuestionButton,
+        #resetButton,
+        #showResultPageButton {
+            display: block;
+            margin: auto;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #resetButton {
+            display: none; /* Initially hidden */
+        }
+        #additionalInfoContainer {
+            display: none;
+            max-width: 600px;
+            margin: auto;
+            background-color: #f2f2f2;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #additionalInfoText {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <h1>Math Test</h1>
+        <div id="question"></div>
+        <ul class="options" id="options"></ul>
+        <div id="feedback"></div>
+        <button id="selectQuestionButton" onclick="SelectQuestion()">Select Question</button>
+        <button id="nextQuestionButton" style="display: none;" onclick="nextQuestion()">Next Question</button>
+        <button id="resetButton" onclick="resetQuiz()">Reset Quiz</button>
+        <button id="showResultPageButton" style="display: none;" onclick="showResultPage()">Show Additional Information</button>
+
+    </div>
+    <canvas id="resultChart" width="250" height="250"></canvas>
+    <div id="additionalInfoContainer">
+        <h2>Additional Information</h2>
+        <p id="additionalInfoText"></p>
+    </div>
+    <script>
+        let selectedSkill;
+        let skillButtonsDisplayed = false;
+
+        const skill1Questions = [
+            {
+                question: "Skill 1 - What is the result of 33 + 77?",
+                options: ["10", "101", "110", "1100"],
+                correctAnswer: "110"
+            },
+            {
+                question: "Skill 1 - What is the result of 13 + 53?",
+                options: ["13", "34", "45", "66"],
+                correctAnswer: "66"
+            },
+            {
+                question: "Skill 1 - What is the result of 32 + 33?",
+                options: ["31", "43", "55", "65"],
+                correctAnswer: "65"
+            },
+            {
+                question: "Skill 1 - What is the result of 53 + 73?",
+                options: ["126", "133", "135", "137"],
+                correctAnswer: "126"
+            },
+            {
+                question: "Skill 1 - What is the result of 23 + 38?",
+                options: ["25", "45", "55", "61"],
+                correctAnswer: "61"
+            },
+            // Add more skill 1 questions as needed
+        ];
+        const skill2Questions = [
+            // Add questions for Skill 3
+            {
+                question: "Skill 2 - What is the result of 17 * 8?",
+                options: ["25", "87", "96", "136"],
+                correctAnswer: "136"
+            },
+            {
+                question: "Skill 2 - What is the result of 13 * 8?",
+                options: ["83", "104", "105", "126"],
+                correctAnswer: "104"
+            },
+            {
+                question: "Skill 2 - What is the result of 13 * 9?",
+                options: ["93", "114", "117", "139"],
+                correctAnswer: "117"
+            },
+            {
+                question: "Skill 2 - What is the result of 23 * 9?",
+                options: ["203", "207", "239", "279"],
+                correctAnswer: "207"
+            },
+            {
+                question: "Skill 2 - What is the result of 23 * 19?",
+                options: ["133", "137", "237", "437"],
+                correctAnswer: "437"
+            },
+            // Add more skill 3 questions as needed
+        ];
+        const skill3Questions = [
+            {
+                question: "Skill 3 - What is the x of 2x=14?",
+                options: ["6", "7", "8", "14"],
+                correctAnswer: "7"
+            },
+            {
+                question: "Skill 3 - What is the x of 2x+2=14?",
+                options: ["6", "8", "12", "22"],
+                correctAnswer: "6"
+            },
+            {
+                question: "Skill 3 - What is the x of 2x+8=14?",
+                options: ["3", "7", "10", "22"],
+                correctAnswer: "3"
+            },
+            {
+                question: "Skill 3 - What is the x of 3x+8=14?",
+                options: ["2", "13", "14", "25"],
+                correctAnswer: "2"
+            },
+            {
+                question: "Skill 3 - What is the x of 5x+5=50?",
+                options: ["5", "9", "10", "45"],
+                correctAnswer: "9"
+            },
+            // Add more skill 2 questions as needed
+        ];
+
+        let questions = [];
+        
+        function SelectQuestion() {
+            selectedSkill = prompt("Enter the skill number (1, 2, or 3):");
+            if (selectedSkill === "1") {
+                questions = [...skill1Questions];
+            } else if (selectedSkill === "2") {
+                questions = [...skill2Questions];
+            } else if (selectedSkill === "3") {
+                questions = [...skill3Questions];
+            } else {
+                alert("Invalid skill number. Please enter 1, 2, or 3.");
+                return;
+            }
+
+            skillButtonsDisplayed = true;
+            currentQuestionIndex = 0;
+            incorrectCount = 0;
+            loadQuestion();
+        }
+
+        function nextQuestion() {
+    const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+    if (selectedAnswer) {
+        const answer = selectedAnswer.value;
+        const currentQuestion = questions[currentQuestionIndex];
+
+        if (answer !== currentQuestion.correctAnswer) {
+            incorrectCount++;
+        }
+    }
+
+    if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        loadQuestion();
+    } else {
+        displayResult();
+    }
+}
+
+        function loadQuestion() {
+            const questionContainer = document.getElementById("question");
+            const optionsList = document.getElementById("options");
+            const selectQuestionButton = document.getElementById("selectQuestionButton");
+            const nextQuestionButton = document.getElementById("nextQuestionButton");
+            const resultChartCanvas = document.getElementById("resultChart");
+            Chart.getChart(resultChartCanvas)?.destroy();
+            if (!skillButtonsDisplayed) {
+                questionContainer.innerHTML = "Choose a exercise : <br>Exercise 1-Addition,<br> Exercise 2-Multiplication, <br>Exercise 3-Equation";
+                optionsList.innerHTML = "";
+
+                selectQuestionButton.style.display = "block";
+                nextQuestionButton.style.display = "none";
+            } else {
+                questionContainer.innerHTML = questions[currentQuestionIndex].question;
+                optionsList.innerHTML = "";
+
+                questions[currentQuestionIndex].options.forEach((option, index) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `<input type="radio" name="answer" value="${option}" id="option${index + 1}" onchange="checkAnswer()">
+                                            <label for="option${index + 1}">${option}</label>`;
+                    optionsList.appendChild(li);
+                });
+
+                selectQuestionButton.style.display = "none";
+                nextQuestionButton.style.display = "block";
+            }
+            document.getElementById("feedback").innerHTML = "";
+        }
+
+        function checkAnswer() {
+            const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+            if (selectedAnswer) {
+                const answer = selectedAnswer.value;
+                const currentQuestion = questions[currentQuestionIndex];
+
+                if (answer === currentQuestion.correctAnswer) {
+                    document.getElementById("feedback").innerHTML = "Correct!";
+                } else {
+                    document.getElementById("feedback").innerHTML = "Incorrect. The correct answer is " + currentQuestion.correctAnswer + ".";
+                }
+            } else {
+                document.getElementById("feedback").innerHTML = "Please select an answer.";
+            }
+        }
+
+        function displayResult() {
+    const correctCount = questions.length - incorrectCount;
+    const nextQuestionButton = document.getElementById("nextQuestionButton");
+    const resetButton = document.getElementById("resetButton");
+
+    nextQuestionButton.style.display = "none";
+    resetButton.style.display = "block"; // Display the reset button
+
+    document.getElementById("question").innerHTML = "Test Completed!";
+    document.getElementById("options").innerHTML = "";
+    document.getElementById("feedback").innerHTML = `Correct: ${correctCount} | Incorrect: ${incorrectCount}`;
+
+    const resultChartCanvas = document.getElementById("resultChart");
+    const resultChartContext = resultChartCanvas.getContext("2d");
+
+    const showResultPageButton = document.getElementById("showResultPageButton");
+    showResultPageButton.style.display = "block";
+    showResultPageButton.addEventListener("click", showResultPage);
+   
+
+    new Chart(resultChartContext, {
+        type: "pie",
+        data: {
+            labels: ["Correct", "Incorrect"],
+            datasets: [{
+                data: [correctCount, incorrectCount],
+                backgroundColor: ["green", "red"],
+            }],
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Test Results',
+                fontSize: 16,
+            },
+            legend: {
+                display: true,
+                position: 'bottom',
+            },
+        },
+    });
+}
+
+        // Add this function to reset the quiz
+        function resetQuiz() {
+    skillButtonsDisplayed = false;
+    incorrectCount = 0;
+    document.getElementById("additionalInfoContainer").style.display = "none";
+    document.getElementById("quiz-container").style.display = "block";
+
+    const resultChartCanvas = document.getElementById("resultChart");
+
+    // Destroy the existing chart (if any)
+    Chart.getChart(resultChartCanvas)?.destroy();
+
+    // Clear the canvas
+    const resultChartContext = resultChartCanvas.getContext("2d");
+    resultChartContext.clearRect(0, 0, resultChartCanvas.width, resultChartCanvas.height);
+
+    // Hide the reset button
+    document.getElementById("resetButton").style.display = "none";
+    skillButtonsDisplayed = false;
+    incorrectCount = 0;
+    // Reset to select question state
+    loadQuestion(); // Load the initial state of the quiz
+    Chart.getChart(resultChartCanvas)?.destroy();
+
+}
+
+
+
+
+function showResultPage() {
+    document.getElementById("quiz-container").style.display = "none";
+
+    const resultChartCanvas = document.getElementById("resultChart");
+    Chart.getChart(resultChartCanvas)?.destroy();
+
+    const additionalInfoContainer = document.getElementById("additionalInfoContainer");
+    additionalInfoContainer.style.display = "block";
+
+    const additionalInfoText = document.getElementById("additionalInfoText");
+    additionalInfoText.innerHTML =  "Addition Hints for Exercise 1:<br>\n" +
+    "&nbsp;&nbsp;&nbsp;23<br>\n" +
+    "+&nbsp;&nbsp;45<br>\n" +
+    "------<br>\n" +
+    "&nbsp;&nbsp;68<br>\n" +
+    "Function Hints for Exercise 2:<br>\n" +
+    "&nbsp;&nbsp;2x+2=14<br>\n" +
+    "&nbsp;&nbsp;2x=12<br>\n" +
+    "&nbsp;&nbsp;x=6<br>\n" +
+    "Multiplication Hints for Exercise 3:<br>\n" +
+    "&nbsp;&nbsp;&nbsp;23<br>\n" +
+    "x&nbsp;&nbsp;45<br>\n" +
+    "------<br>\n" +
+    "&nbsp;&nbsp;115<br>\n" +
+    "&nbsp;&nbsp;920<br>\n" +
+    "------<br>\n" +
+    "&nbsp;&nbsp;1035";
+
+    if (!document.getElementById("resetQuizButton")) {
+        const resetQuizButton = document.createElement("button");
+        resetQuizButton.id = "resetQuizButton"; // 
+        resetQuizButton.textContent = "Reset Quiz";
+        resetQuizButton.addEventListener("click", resetQuiz);
+        additionalInfoContainer.appendChild(resetQuizButton);
+    }
+}
+
+
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
+
